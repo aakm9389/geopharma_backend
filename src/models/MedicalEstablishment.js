@@ -1,0 +1,88 @@
+import mongoose from "mongoose";
+
+const MedicalEstablishmentSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+
+    type: {
+      type: String,
+      enum: [
+        "Clinique",
+        "Polyclinique",
+        "Cabinet médical",
+        "Centre médical",
+      ],
+      required: true,
+    },
+
+    city: {
+      type: String,
+      required: true,
+    },
+
+    address: {
+      type: String,
+    },
+
+    phone: {
+      type: String,
+    },
+
+    hasLaboratory: {
+      type: Boolean,
+      default: false,
+    },
+
+    hasImaging: {
+      type: Boolean,
+      default: false,
+    },
+
+    hasDialysis: {
+      type: Boolean,
+      default: false,
+    },
+
+    insurances: {
+      type: [String],
+      default: [],
+    },
+
+    /**
+     * 📍 Localisation Google Maps
+     * Format attendu : "latitude,longitude"
+     * Exemple : "12.6392,-8.0029"
+     */
+    mapLocation: {
+      type: String,
+      match: /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/,
+    },
+
+    /**
+     * (Optionnel) lien Google Maps classique
+     */
+    googleMapUrl: {
+      type: String,
+    },
+
+    /**
+     * 🖼️ Image de l’établissement
+     */
+    image: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const MedicalEstablishment = mongoose.model(
+  "MedicalEstablishment",
+  MedicalEstablishmentSchema
+);
+
+export default MedicalEstablishment;
