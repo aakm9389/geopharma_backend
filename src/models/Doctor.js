@@ -13,19 +13,24 @@ const doctorSchema = new mongoose.Schema(
       required: true,
     },
 
-    // 🔹 Nouveau : téléphone du médecin
     phone: {
       type: String,
       required: false,
       trim: true,
     },
 
-    // 🔹 Nouveau : email du médecin
     email: {
       type: String,
       required: false,
       trim: true,
       lowercase: true,
+    },
+
+    // 🔹 Nouveau : photo du médecin
+    photo: {
+      type: String, // stocke l'URL ou le chemin de l'image
+      required: false,
+      trim: true,
     },
   },
   {

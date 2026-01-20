@@ -3,10 +3,12 @@ import path from 'path';
 import fs from 'fs';
 
 /// ==========================
-/// 📁 DOSSIERS (FIX ENOENT)
+/// 📁 DOSSIERS
 /// ==========================
 const uploadRoot = 'uploads';
 const dentalDir = path.join(uploadRoot, 'dentals');
+const doctorDir = path.join(uploadRoot, 'doctors');
+const establishmentDir = path.join(uploadRoot, 'establishments');
 
 // ✅ Créer uploads/
 if (!fs.existsSync(uploadRoot)) {
@@ -18,13 +20,21 @@ if (!fs.existsSync(dentalDir)) {
   fs.mkdirSync(dentalDir, { recursive: true });
 }
 
+// ✅ Créer uploads/doctors/
+if (!fs.existsSync(doctorDir)) {
+  fs.mkdirSync(doctorDir, { recursive: true });
+}
+
+// ✅ Créer uploads/establishments/
+if (!fs.existsSync(establishmentDir)) {
+  fs.mkdirSync(establishmentDir, { recursive: true });
+}
+
 /// ==========================
-/// 🦷 CABINETS DENTAIRES (ANCIEN — CONSERVÉ)
+/// 🦷 CABINETS DENTAIRES
 /// ==========================
 const dentalStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, dentalDir);
-  },
+  destination: (req, file, cb) => cb(null, dentalDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, `dental-${Date.now()}${ext}`);
@@ -32,26 +42,34 @@ const dentalStorage = multer.diskStorage({
 });
 
 /// ==========================
-/// 📦 STOCKAGE UNIFIÉ (NOUVEAU)
+/// 👨‍⚕️ MÉDECINS
 /// ==========================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadRoot);
-  },
+const doctorStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, doctorDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}${ext}`);
+    cb(null, `doctor-${Date.now()}${ext}`);
   },
 });
 
 /// ==========================
-/// 🛡️ FILTRE IMAGE (FLUTTER WEB FIX)
+/// 🏥 ÉTABLISSEMENTS
+/// ==========================
+const establishmentStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, establishmentDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `establishment-${Date.now()}${ext}`);
+  },
+});
+
+/// ==========================
+/// 🛡️ FILTRE IMAGE
 /// ==========================
 const fileFilter = (req, file, cb) => {
   const allowedExt = ['.jpg', '.jpeg', '.png', '.webp'];
   const ext = path.extname(file.originalname).toLowerCase();
 
-  // ✅ Flutter Web + Mobile compatible
   if (
     allowedExt.includes(ext) ||
     (file.mimetype && file.mimetype.startsWith('image/'))
@@ -66,20 +84,23 @@ const fileFilter = (req, file, cb) => {
 /// 📤 EXPORTS
 /// ==========================
 
-// ✅ Ancien upload dentaire (CONSERVÉ)
+// 🦷 Dentaire
 export const uploadDentalImage = multer({
   storage: dentalStorage,
   fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-  },
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// ✅ Upload unifié (établissements médicaux)
-export const upload = multer({
-  storage,
+// 👨‍⚕️ Médecins
+export const uploadDoctorImage = multer({
+  storage: doctorStorage,
   fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-  },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// 🏥 Établissements
+export const upload = multer({
+  storage: establishmentStorage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
 });

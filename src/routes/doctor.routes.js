@@ -1,6 +1,5 @@
 import express from 'express';
 import {
-  getSpecialties,
   getDoctorsBySpecialty,
   createDoctor,
   updateDoctor,
@@ -9,15 +8,13 @@ import {
 
 import { requireAuth } from '../middlewares/auth.middleware.js';
 import { requireAdmin } from '../middlewares/admin.middleware.js';
+import { uploadDoctorImage } from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
 /// ===============================
 /// 📌 PUBLIC
 /// ===============================
-
-// 🔹 Liste des spécialités
-router.get('/specialties', getSpecialties);
 
 // 🔹 Liste des médecins par spécialité
 router.get(
@@ -29,13 +26,30 @@ router.get(
 /// 🛠️ ADMIN
 /// ===============================
 
-// ➕ Ajouter un médecin
-router.post('/', requireAuth, requireAdmin, createDoctor);
+// ➕ Ajouter un médecin (AVEC PHOTO)
+router.post(
+  '/',
+  requireAuth,
+  requireAdmin,
+  uploadDoctorImage.single('photo'),
+  createDoctor
+);
 
-// ✏️ Modifier un médecin
-router.put('/:id', requireAuth, requireAdmin, updateDoctor);
+// ✏️ Modifier un médecin (AVEC PHOTO)
+router.put(
+  '/:id',
+  requireAuth,
+  requireAdmin,
+  uploadDoctorImage.single('photo'),
+  updateDoctor
+);
 
 // ❌ Supprimer un médecin
-router.delete('/:id', requireAuth, requireAdmin, deleteDoctor);
+router.delete(
+  '/:id',
+  requireAuth,
+  requireAdmin,
+  deleteDoctor
+);
 
 export default router;

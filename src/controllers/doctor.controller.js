@@ -1,31 +1,13 @@
 import Doctor from '../models/Doctor.js';
-import Specialty from '../models/Specialty.js';
-
-/// ===============================
-/// 📌 SPÉCIALITÉS (PUBLIC)
-/// ===============================
-export const getSpecialties = async (req, res) => {
-  try {
-    const specialties = await Specialty.find().sort({ name: 1 });
-    res.status(200).json(specialties);
-  } catch (error) {
-    console.error('❌ getSpecialties:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
-  }
-};
 
 /// =======================================
 /// 👨‍⚕️ MÉDECINS PAR SPÉCIALITÉ (PUBLIC)
 /// =======================================
 export const getDoctorsBySpecialty = async (req, res) => {
   try {
-    // ✅ FIX IMPORTANT : le paramètre s'appelle :id
     const { id } = req.params;
 
-    const doctors = await Doctor.find({
-      specialty: id,
-    });
-
+    const doctors = await Doctor.find({ specialty: id });
     res.status(200).json(doctors);
   } catch (error) {
     console.error('❌ getDoctorsBySpecialty:', error);
@@ -38,7 +20,14 @@ export const getDoctorsBySpecialty = async (req, res) => {
 /// ===============================
 export const createDoctor = async (req, res) => {
   try {
-    const doctor = await Doctor.create(req.body);
+    const data = {
+      ...req.body,
+      photo: req.file
+        ? `/uploads/doctors/${req.file.filename}`
+        : undefined,
+    };
+
+    const doctor = await Doctor.create(data);
     res.status(201).json(doctor);
   } catch (error) {
     console.error('❌ createDoctor:', error);
@@ -51,9 +40,17 @@ export const createDoctor = async (req, res) => {
 /// ===============================
 export const updateDoctor = async (req, res) => {
   try {
+    const data = {
+      ...req.body,
+    };
+
+    if (req.file) {
+      data.photo = `/uploads/doctors/${req.file.filename}`;
+    }
+
     const doctor = await Doctor.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      data,
       { new: true }
     );
 
