@@ -23,7 +23,7 @@ export const createDoctor = async (req, res) => {
     const data = {
       ...req.body,
       photo: req.file
-        ? `/uploads/doctors/${req.file.filename}`
+        ? `${BASE_URL}/uploads/doctors/${req.file.filename}`
         : undefined,
     };
 
@@ -45,7 +45,7 @@ export const updateDoctor = async (req, res) => {
     };
 
     if (req.file) {
-      data.photo = `/uploads/doctors/${req.file.filename}`;
+      data.photo = `${BASE_URL}/uploads/doctors/${req.file.filename}`;
     }
 
     const doctor = await Doctor.findByIdAndUpdate(

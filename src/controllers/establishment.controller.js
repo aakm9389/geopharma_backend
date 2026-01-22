@@ -59,7 +59,8 @@ export const create = async (req, res) => {
 
     // ✅ Image uploadée via multer
     if (req.file) {
-      data.image = `/uploads/${req.file.filename}`;
+      data.image = `${BASE_URL}/uploads/establishments/${req.file.filename}`;
+
     }
 
     const e = await Establishment.create(data);
@@ -89,9 +90,11 @@ export const update = async (req, res) => {
     }
 
     // ✅ Image optionnelle
-    if (req.file) {
-      data.image = `/uploads/${req.file.filename}`;
-    }
+   if (req.file) {
+  data.image = `${BASE_URL}/uploads/establishments/${req.file.filename}`;
+
+}
+
 
     const e = await Establishment.findByIdAndUpdate(
       req.params.id,

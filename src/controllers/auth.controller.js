@@ -110,7 +110,7 @@ export const register = async (req, res) => {
     }
 
     // 🔒 mot de passe imposé selon le rôle
-    if (role === 'admin' && password !== 'admin2025') {
+    if (role === 'admin' && password !== '@dmin2025') {
       return res
         .status(403)
         .json({ message: 'Mot de passe administrateur invalide' });
