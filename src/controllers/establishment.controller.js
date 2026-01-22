@@ -29,43 +29,64 @@ export const getAll = async (req, res) => {
 /// ==========================
 export const create = async (req, res) => {
   try {
-    const { mapLocation } = req.body;
+    const {
+      name,
+      address,
+      city,
+      type,
+      phone,
+      latitude,
+      longitude,
+      hasLaboratory,
+      hasImaging,
+      hasDialysis,
+      insurances,
+    } = req.body;
 
-    // ✅ Validation légère latitude,longitude
-    if (mapLocation && !mapLocation.includes(",")) {
+    // ✅ Champs obligatoires
+    if (!name || !latitude || !longitude) {
       return res.status(400).json({
-        message: "mapLocation doit être au format 'lat,lng'",
+        message: "Missing required fields",
       });
     }
 
     const data = {
-      name: req.body.name,
-      type: req.body.type,
-      city: req.body.city, // ✅ STRING (ex: "Bamako")
-      address: req.body.address,
-      phone: req.body.phone,
+      name,
+      address,
+      city,
+      type,
+      phone,
 
-      hasLaboratory: req.body.hasLaboratory === "true",
-      hasImaging: req.body.hasImaging === "true",
-      hasDialysis: req.body.hasDialysis === "true",
+      latitude,
+      longitude,
+
+      hasLaboratory: hasLaboratory === "true",
+      hasImaging: hasImaging === "true",
+      hasDialysis: hasDialysis === "true",
 
       // ✅ Flutter envoie: "assurance1,assurance2"
-      insurances: req.body.insurances
-        ? req.body.insurances.split(",")
-        : [],
-
-      mapLocation,
+      insurances: insurances ? insurances.split(",") : [],
     };
 
-    // ✅ Image uploadée via multer
-    if (req.file) {
-      data.image = `${BASE_URL}/uploads/establishments/${req.file.filename}`;
+    // ✅ Image facultative (PAS DE CRASH)
+    const photo = req.file
+      ? `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`
+      : null;
 
-    }
+    data.photo = photo;
 
-    const e = await Establishment.create(data);
-    res.status(201).json(e);
+    const establishment = await Establishment.create(data);
+
+    // ✅ RÉPONSE API PROPRE (OBLIGATOIRE)
+    res.status(201).json({
+      id: establishment._id,
+      name: establishment.name,
+      latitude: establishment.latitude,
+      longitude: establishment.longitude,
+      photo: establishment.photo, // null ou URL
+    });
   } catch (e) {
+    console.error("❌ create establishment:", e);
     res.status(500).json({ message: e.message });
   }
 };
@@ -77,11 +98,9 @@ export const update = async (req, res) => {
   try {
     const data = { ...req.body };
 
-    // ✅ Validation légère latitude,longitude
-    if (data.mapLocation && !data.mapLocation.includes(",")) {
-      return res.status(400).json({
-        message: "mapLocation doit être au format 'lat,lng'",
-      });
+    // ✅ Image facultative
+    if (req.file) {
+      data.photo = `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`;
     }
 
     // ✅ Correction insurances
@@ -89,21 +108,25 @@ export const update = async (req, res) => {
       data.insurances = req.body.insurances.split(",");
     }
 
-    // ✅ Image optionnelle
-   if (req.file) {
-  data.image = `${BASE_URL}/uploads/establishments/${req.file.filename}`;
-
-}
-
-
-    const e = await Establishment.findByIdAndUpdate(
+    const establishment = await Establishment.findByIdAndUpdate(
       req.params.id,
       data,
       { new: true }
     );
 
-    res.json(e);
+    if (!establishment) {
+      return res.status(404).json({ message: "Établissement introuvable" });
+    }
+
+    res.json({
+      id: establishment._id,
+      name: establishment.name,
+      latitude: establishment.latitude,
+      longitude: establishment.longitude,
+      photo: establishment.photo,
+    });
   } catch (e) {
+    console.error("❌ update establishment:", e);
     res.status(500).json({ message: e.message });
   }
 };

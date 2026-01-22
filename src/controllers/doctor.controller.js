@@ -20,15 +20,22 @@ export const getDoctorsBySpecialty = async (req, res) => {
 /// ===============================
 export const createDoctor = async (req, res) => {
   try {
-    const data = {
-      ...req.body,
-      photo: req.file
-        ? `${BASE_URL}/uploads/doctors/${req.file.filename}`
-        : undefined,
-    };
+    const photo = req.file
+      ? `${req.protocol}://${req.get('host')}/uploads/doctors/${req.file.filename}`
+      : null; // ✅ photo facultative
 
-    const doctor = await Doctor.create(data);
-    res.status(201).json(doctor);
+    const doctor = await Doctor.create({
+      ...req.body,
+      photo,
+    });
+
+    // ✅ RÉPONSE API OBLIGATOIRE
+    res.status(201).json({
+      id: doctor._id,
+      name: doctor.name,
+      specialty: doctor.specialty,
+      photo: doctor.photo, // null ou URL HTTPS
+    });
   } catch (error) {
     console.error('❌ createDoctor:', error);
     res.status(400).json({ message: 'Création impossible' });
@@ -45,7 +52,7 @@ export const updateDoctor = async (req, res) => {
     };
 
     if (req.file) {
-      data.photo = `${BASE_URL}/uploads/doctors/${req.file.filename}`;
+      data.photo = `${req.protocol}://${req.get('host')}/uploads/doctors/${req.file.filename}`;
     }
 
     const doctor = await Doctor.findByIdAndUpdate(
@@ -58,7 +65,12 @@ export const updateDoctor = async (req, res) => {
       return res.status(404).json({ message: 'Médecin introuvable' });
     }
 
-    res.status(200).json(doctor);
+    res.status(200).json({
+      id: doctor._id,
+      name: doctor.name,
+      specialty: doctor.specialty,
+      photo: doctor.photo,
+    });
   } catch (error) {
     console.error('❌ updateDoctor:', error);
     res.status(400).json({ message: 'Mise à jour impossible' });
