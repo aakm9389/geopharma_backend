@@ -8,14 +8,8 @@ export const getAll = async (req, res) => {
     const { city, type } = req.query;
     const filter = {};
 
-    // ✅ City reçue comme STRING depuis Flutter
-    if (city) {
-      filter.city = city;
-    }
-
-    if (type) {
-      filter.type = type;
-    }
+    if (city) filter.city = city;
+    if (type) filter.type = type;
 
     const data = await Establishment.find(filter);
     res.json(data);
@@ -44,7 +38,7 @@ export const create = async (req, res) => {
     } = req.body;
 
     // ✅ Champs obligatoires
-    if (!name || !latitude || !longitude) {
+    if (!name || !city || !type || !latitude || !longitude) {
       return res.status(400).json({
         message: "Missing required fields",
       });
@@ -57,33 +51,28 @@ export const create = async (req, res) => {
       type,
       phone,
 
-      latitude,
-      longitude,
+      // ✅ Conversion latitude/longitude → mapLocation
+      mapLocation: `${latitude},${longitude}`,
 
       hasLaboratory: hasLaboratory === "true",
       hasImaging: hasImaging === "true",
       hasDialysis: hasDialysis === "true",
 
-      // ✅ Flutter envoie: "assurance1,assurance2"
       insurances: insurances ? insurances.split(",") : [],
     };
 
-    // ✅ Image facultative (PAS DE CRASH)
-    const photo = req.file
-      ? `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`
-      : null;
-
-    data.photo = photo;
+    // ✅ Image facultative
+    if (req.file) {
+      data.image = `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`;
+    }
 
     const establishment = await Establishment.create(data);
 
-    // ✅ RÉPONSE API PROPRE (OBLIGATOIRE)
     res.status(201).json({
       id: establishment._id,
       name: establishment.name,
-      latitude: establishment.latitude,
-      longitude: establishment.longitude,
-      photo: establishment.photo, // null ou URL
+      mapLocation: establishment.mapLocation,
+      image: establishment.image || null,
     });
   } catch (e) {
     console.error("❌ create establishment:", e);
@@ -100,7 +89,12 @@ export const update = async (req, res) => {
 
     // ✅ Image facultative
     if (req.file) {
-      data.photo = `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`;
+      data.image = `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`;
+    }
+
+    // ✅ mapLocation
+    if (req.body.latitude && req.body.longitude) {
+      data.mapLocation = `${req.body.latitude},${req.body.longitude}`;
     }
 
     // ✅ Correction insurances
@@ -121,9 +115,8 @@ export const update = async (req, res) => {
     res.json({
       id: establishment._id,
       name: establishment.name,
-      latitude: establishment.latitude,
-      longitude: establishment.longitude,
-      photo: establishment.photo,
+      mapLocation: establishment.mapLocation,
+      image: establishment.image || null,
     });
   } catch (e) {
     console.error("❌ update establishment:", e);

@@ -50,6 +50,9 @@ const __dirname = path.dirname(__filename);
 ========================= */
 app.use(
   "/uploads",
+  cors({
+    origin: "*",
+  }),
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");

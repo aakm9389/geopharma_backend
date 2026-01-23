@@ -12,39 +12,28 @@ import {
 
 const router = express.Router();
 
-/// ==========================
 /// 📥 GET — Public
-/// ==========================
 router.get("/", getAll);
 
-/// ==========================
-/// ➕ POST — Create establishment (ADMIN)
-/// ⚠️ IMPORTANT :
-/// upload.single("image")
-/// 👉 le champ fichier DOIT s'appeler "image"
-/// ==========================
+/// ➕ POST — Create (ADMIN)
 router.post(
   "/",
   requireAuth,
   requireAdmin,
-  upload.single("image"), // ✅ MATCH FLUTTER
+  upload.single("image"), // ✅ DOIT matcher Flutter
   create
 );
 
-/// ==========================
-/// ✏️ PUT — Update establishment (ADMIN)
-/// ==========================
+/// ✏️ PUT — Update (ADMIN)
 router.put(
   "/:id",
   requireAuth,
   requireAdmin,
-  upload.single("image"), // ✅ MATCH FLUTTER
+  upload.single("image"),
   update
 );
 
-/// ==========================
-/// 🗑️ DELETE — Remove establishment (ADMIN)
-/// ==========================
+/// 🗑️ DELETE — Remove (ADMIN)
 router.delete(
   "/:id",
   requireAuth,

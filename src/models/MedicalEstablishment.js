@@ -2,10 +2,7 @@ import mongoose from "mongoose";
 
 const MedicalEstablishmentSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
+    name: { type: String, required: true },
 
     type: {
       type: String,
@@ -18,33 +15,15 @@ const MedicalEstablishmentSchema = new mongoose.Schema(
       required: true,
     },
 
-    city: {
-      type: String,
-      required: true,
-    },
+    city: { type: String, required: true },
 
-    address: {
-      type: String,
-    },
+    address: { type: String },
 
-    phone: {
-      type: String,
-    },
+    phone: { type: String },
 
-    hasLaboratory: {
-      type: Boolean,
-      default: false,
-    },
-
-    hasImaging: {
-      type: Boolean,
-      default: false,
-    },
-
-    hasDialysis: {
-      type: Boolean,
-      default: false,
-    },
+    hasLaboratory: { type: Boolean, default: false },
+    hasImaging: { type: Boolean, default: false },
+    hasDialysis: { type: Boolean, default: false },
 
     insurances: {
       type: [String],
@@ -52,32 +31,22 @@ const MedicalEstablishmentSchema = new mongoose.Schema(
     },
 
     /**
-     * 📍 Localisation Google Maps
-     * Format attendu : "latitude,longitude"
-     * Exemple : "12.6392,-8.0029"
+     * 📍 Localisation OpenStreetMap
+     * Format : "latitude,longitude"
      */
     mapLocation: {
       type: String,
       match: /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/,
     },
 
-    /**
-     * (Optionnel) lien Google Maps classique
-     */
-    googleMapUrl: {
-      type: String,
-    },
+    googleMapUrl: { type: String },
 
     /**
-     * 🖼️ Image de l’établissement
+     * 🖼️ Image établissement
      */
-    image: {
-      type: String,
-    },
+    image: { type: String },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const MedicalEstablishment = mongoose.model(
