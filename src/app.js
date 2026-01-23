@@ -20,55 +20,58 @@ import imagingRoutes from "./routes/imaging.routes.js";
 import specialtyRoutes from "./routes/specialty.routes.js";
 import dentalRoutes from "./routes/dental.routes.js";
 import cityRoutes from "./routes/city.routes.js";
-
 import adminRoutes from "./routes/admin.routes.js";
 
-// ...
-
-
 const app = express();
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  next();
-});
 
+/* =========================
+   🔐 CORS GLOBAL (PROPRE)
+========================= */
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+/* =========================
+   🔧 Body parsers
+========================= */
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 /* 🔹 Résolution du chemin (ESM) */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/// =======================
-/// Middlewares globaux
-/// =======================
-app.use(cors());
-app.use(express.json());
-
-/* 🔹 Fichiers uploadés accessibles */
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+/* =========================
+   🖼️ FICHIERS STATIQUES (CORS OK)
+========================= */
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    setHeaders: (res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
 
 /// =======================
 /// 📤 ROUTE UPLOAD IMAGE (générique)
 /// =======================
-app.post(
-  "/api/upload",
-  upload.single("image"),
-  (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({
-        message: "Aucun fichier reçu",
-      });
-    }
-    
-    res.status(200).json({
-      url: `/uploads/${req.file.filename}`,
+app.post("/api/upload", upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      message: "Aucun fichier reçu",
     });
   }
-);
+
+  res.status(200).json({
+    url: `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`,
+  });
+});
 
 /// =======================
 /// 🔐 Auth
@@ -84,7 +87,7 @@ app.use("/api/cities", cityRoutes);
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/doctors", doctorRoutes);
 
-/// 🏥 ÉTABLISSEMENTS MÉDICAUX (UNIFIÉ)
+/// 🏥 ÉTABLISSEMENTS MÉDICAUX
 app.use("/api/establishments", establishmentRoutes);
 
 /// 🧪 Laboratoires
