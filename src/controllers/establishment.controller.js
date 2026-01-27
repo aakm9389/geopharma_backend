@@ -98,9 +98,10 @@ export const update = async (req, res) => {
     }
 
     // ✅ Correction insurances
-    if (req.body.insurances) {
-      data.insurances = req.body.insurances.split(",");
+        if (req.body.insurances !== undefined) {
+      MedicalEstablishment.insurances = req.body.insurances;
     }
+
 
     const establishment = await Establishment.findByIdAndUpdate(
       req.params.id,

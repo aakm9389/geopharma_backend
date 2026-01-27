@@ -7,15 +7,31 @@ const laboratorySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     phone: {
       type: String,
       required: true,
     },
+
     city: {
       type: String,
       required: true,
       index: true,
     },
+
+    // 📍 Adresse
+    address: {
+      type: String,
+      default: '',
+    },
+
+    // 🏥 Assurances acceptées
+    insurances: {
+      type: [String],
+      default: [],
+    },
+
+    // 🖼️ Image
     image: {
       type: String,
       default: null,
@@ -26,4 +42,6 @@ const laboratorySchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('Laboratory', laboratorySchema);
+// ✅ EXPORT DU MODÈLE (OBLIGATOIRE)
+const Laboratory = mongoose.model('Laboratory', laboratorySchema);
+export default Laboratory;

@@ -1,12 +1,7 @@
 import express from "express";
 import cors from "cors";
-
-/* 🔹 Upload & fichiers statiques */
 import path from "path";
 import { fileURLToPath } from "url";
-
-/* 🔹 Middleware upload générique */
-import { upload } from "./middlewares/upload.middleware.js";
 
 /* Routes */
 import authRoutes from "./routes/auth.routes.js";
@@ -25,87 +20,47 @@ import adminRoutes from "./routes/admin.routes.js";
 const app = express();
 
 /* =========================
-   🔐 CORS GLOBAL (PROPRE)
+   🔐 CORS GLOBAL
 ========================= */
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors({ origin: "*" }));
 
-/* =========================
-   🔧 Body parsers
-========================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* 🔹 Résolution du chemin (ESM) */
+/* =========================
+   📂 PATH (ESM)
+========================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* =========================
-   🖼️ FICHIERS STATIQUES (CORS OK)
+   🖼️ FICHIERS STATIQUES (FIX CORS IMAGE)
 ========================= */
 app.use(
   "/uploads",
-  cors({
-    origin: "*",
-  }),
-  express.static(path.join(__dirname, "uploads"), {
-    setHeaders: (res) => {
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    },
-  })
+  (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(path.join(__dirname, "uploads"))
 );
 
-/// =======================
-/// 📤 ROUTE UPLOAD IMAGE (générique)
-/// =======================
-app.post("/api/upload", upload.single("image"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({
-      message: "Aucun fichier reçu",
-    });
-  }
-
-  res.status(200).json({
-    url: `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`,
-  });
-});
-
-/// =======================
-/// 🔐 Auth
-/// =======================
+/* =========================
+   🔐 Auth & APIs
+========================= */
 app.use("/api/auth", authRoutes);
 app.use("/api", adminRoutes);
 
-/// =======================
-/// 🌍 Données principales
-/// =======================
 app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/cities", cityRoutes);
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/doctors", doctorRoutes);
-
-/// 🏥 ÉTABLISSEMENTS MÉDICAUX
 app.use("/api/establishments", establishmentRoutes);
-
-/// 🧪 Laboratoires
 app.use("/api/labs", labRoutes);
-
-/// 🏠 Soins à domicile
 app.use("/api/homecare", homecareRoutes);
-
-/// 🖼️ Imagerie médicale
 app.use("/api/imaging", imagingRoutes);
-
-/// 👨‍⚕️ Spécialités
 app.use("/api/specialties", specialtyRoutes);
-
-/// 🦷 Cabinets dentaires
 app.use("/api/dentals", dentalRoutes);
 
 export default app;

@@ -5,16 +5,7 @@ import Medicine from '../models/Medicine.js';
 /// =======================
 export const listMedicines = async (req, res) => {
   try {
-    const { city, pharmacy } = req.query;
-
-    const filter = {};
-    if (city) filter.city = city;
-    if (pharmacy) filter.pharmacy = pharmacy;
-
-    const medicines = await Medicine.find(filter)
-      .populate('pharmacy', 'name city')
-      .sort({ name: 1 });
-
+    const medicines = await Medicine.find().sort({ name: 1 });
     res.json(medicines);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -26,10 +26,9 @@ const MedicalEstablishmentSchema = new mongoose.Schema(
     hasDialysis: { type: Boolean, default: false },
 
     insurances: {
-      type: [String],
-      default: [],
-    },
-
+    type: [String],
+    default: [],
+  },
     /**
      * 📍 Localisation OpenStreetMap
      * Format : "latitude,longitude"
