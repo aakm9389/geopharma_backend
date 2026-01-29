@@ -1,12 +1,10 @@
 import Doctor from '../models/Doctor.js';
 
-/// =======================================
-/// 👨‍⚕️ MÉDECINS PAR SPÉCIALITÉ (PUBLIC)
-/// =======================================
+const BASE_URL = 'https://geopharma-backend.onrender.com';
+
 export const getDoctorsBySpecialty = async (req, res) => {
   try {
     const { id } = req.params;
-
     const doctors = await Doctor.find({ specialty: id });
     res.status(200).json(doctors);
   } catch (error) {
@@ -15,44 +13,30 @@ export const getDoctorsBySpecialty = async (req, res) => {
   }
 };
 
-/// ===============================
-/// 🛠️ ADMIN — AJOUTER
-/// ===============================
 export const createDoctor = async (req, res) => {
   try {
     const photo = req.file
-      ? `${req.protocol}://${req.get('host')}/uploads/doctors/${req.file.filename}`
-      : null; // ✅ photo facultative
+      ? `${BASE_URL}/uploads/doctors/${req.file.filename}`
+      : null;
 
     const doctor = await Doctor.create({
       ...req.body,
       photo,
     });
 
-    // ✅ RÉPONSE API OBLIGATOIRE
-    res.status(201).json({
-      id: doctor._id,
-      name: doctor.name,
-      specialty: doctor.specialty,
-      photo: doctor.photo, // null ou URL HTTPS
-    });
+    res.status(201).json(doctor);
   } catch (error) {
     console.error('❌ createDoctor:', error);
     res.status(400).json({ message: 'Création impossible' });
   }
 };
 
-/// ===============================
-/// 🛠️ ADMIN — MODIFIER
-/// ===============================
 export const updateDoctor = async (req, res) => {
   try {
-    const data = {
-      ...req.body,
-    };
+    const data = { ...req.body };
 
     if (req.file) {
-      data.photo = `${req.protocol}://${req.get('host')}/uploads/doctors/${req.file.filename}`;
+      data.photo = `${BASE_URL}/uploads/doctors/${req.file.filename}`;
     }
 
     const doctor = await Doctor.findByIdAndUpdate(
@@ -65,21 +49,13 @@ export const updateDoctor = async (req, res) => {
       return res.status(404).json({ message: 'Médecin introuvable' });
     }
 
-    res.status(200).json({
-      id: doctor._id,
-      name: doctor.name,
-      specialty: doctor.specialty,
-      photo: doctor.photo,
-    });
+    res.status(200).json(doctor);
   } catch (error) {
     console.error('❌ updateDoctor:', error);
     res.status(400).json({ message: 'Mise à jour impossible' });
   }
 };
 
-/// ===============================
-/// 🛠️ ADMIN — SUPPRIMER
-/// ===============================
 export const deleteDoctor = async (req, res) => {
   try {
     await Doctor.findByIdAndDelete(req.params.id);

@@ -11,9 +11,22 @@ export const getAll = async (req, res) => {
     if (city) filter.city = city;
     if (type) filter.type = type;
 
-    const data = await Establishment.find(filter);
+    const establishments = await Establishment.find(filter);
+
+    // ✅ Normalisation des assurances
+    const data = establishments.map((e) => {
+      const obj = e.toObject();
+      return {
+        ...obj,
+        insurances: Array.isArray(obj.insurances)
+          ? obj.insurances
+          : JSON.parse(obj.insurances || "[]"),
+      };
+    });
+
     res.json(data);
   } catch (e) {
+    console.error("❌ getAll establishments:", e);
     res.status(500).json({ message: e.message });
   }
 };
@@ -51,28 +64,31 @@ export const create = async (req, res) => {
       type,
       phone,
 
-      // ✅ Conversion latitude/longitude → mapLocation
+      // ✅ Localisation
       mapLocation: `${latitude},${longitude}`,
 
       hasLaboratory: hasLaboratory === "true",
       hasImaging: hasImaging === "true",
       hasDialysis: hasDialysis === "true",
 
-      insurances: insurances ? insurances.split(",") : [],
+      // ✅ Assurances TOUJOURS en array
+      insurances: insurances
+        ? insurances.split(",").map((i) => i.trim())
+        : [],
     };
 
     // ✅ Image facultative
     if (req.file) {
-      data.image = `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`;
+      data.image = `${req.protocol}://${req.get(
+        "host"
+      )}/uploads/establishments/${req.file.filename}`;
     }
 
     const establishment = await Establishment.create(data);
 
     res.status(201).json({
-      id: establishment._id,
-      name: establishment.name,
-      mapLocation: establishment.mapLocation,
-      image: establishment.image || null,
+      ...establishment.toObject(),
+      insurances: establishment.insurances,
     });
   } catch (e) {
     console.error("❌ create establishment:", e);
@@ -89,7 +105,9 @@ export const update = async (req, res) => {
 
     // ✅ Image facultative
     if (req.file) {
-      data.image = `${req.protocol}://${req.get("host")}/uploads/establishments/${req.file.filename}`;
+      data.image = `${req.protocol}://${req.get(
+        "host"
+      )}/uploads/establishments/${req.file.filename}`;
     }
 
     // ✅ mapLocation
@@ -97,11 +115,14 @@ export const update = async (req, res) => {
       data.mapLocation = `${req.body.latitude},${req.body.longitude}`;
     }
 
-    // ✅ Correction insurances
-        if (req.body.insurances !== undefined) {
-      MedicalEstablishment.insurances = req.body.insurances;
+    // ✅ Assurances normalisées
+    if (req.body.insurances !== undefined) {
+      data.insurances = Array.isArray(req.body.insurances)
+        ? req.body.insurances
+        : req.body.insurances
+            .split(",")
+            .map((i) => i.trim());
     }
-
 
     const establishment = await Establishment.findByIdAndUpdate(
       req.params.id,
@@ -110,14 +131,14 @@ export const update = async (req, res) => {
     );
 
     if (!establishment) {
-      return res.status(404).json({ message: "Établissement introuvable" });
+      return res
+        .status(404)
+        .json({ message: "Établissement introuvable" });
     }
 
     res.json({
-      id: establishment._id,
-      name: establishment.name,
-      mapLocation: establishment.mapLocation,
-      image: establishment.image || null,
+      ...establishment.toObject(),
+      insurances: establishment.insurances,
     });
   } catch (e) {
     console.error("❌ update establishment:", e);
@@ -133,6 +154,7 @@ export const remove = async (req, res) => {
     await Establishment.findByIdAndDelete(req.params.id);
     res.sendStatus(204);
   } catch (e) {
+    console.error("❌ delete establishment:", e);
     res.status(500).json({ message: e.message });
   }
 };
