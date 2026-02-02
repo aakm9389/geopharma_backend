@@ -20,10 +20,33 @@ import adminRoutes from "./routes/admin.routes.js";
 const app = express();
 
 /* =========================
-   🔐 CORS GLOBAL
+   🔐 CORS GLOBAL (CORRECT)
 ========================= */
-app.use(cors({ origin: "*" }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Autorise :
+      // - Flutter Web local
+      // - Frontend déployé
+      // - Postman / curl (origin = undefined)
+      if (
+        !origin ||
+        origin.startsWith("http://localhost") ||
+        origin.includes("render.com")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
+/* =========================
+   📦 BODY PARSERS
+========================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -47,7 +70,7 @@ app.use(
 );
 
 /* =========================
-   🔐 Auth & APIs
+   🔐 ROUTES API
 ========================= */
 app.use("/api/auth", authRoutes);
 app.use("/api", adminRoutes);
