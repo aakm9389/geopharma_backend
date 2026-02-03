@@ -20,29 +20,18 @@ import adminRoutes from "./routes/admin.routes.js";
 const app = express();
 
 /* =========================
-   🔐 CORS GLOBAL (CORRECT)
+   ✅ CORS — STABLE (RENDER SAFE)
 ========================= */
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Autorise :
-      // - Flutter Web local
-      // - Frontend déployé
-      // - Postman / curl (origin = undefined)
-      if (
-        !origin ||
-        origin.startsWith("http://localhost") ||
-        origin.includes("render.com")
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "*", // ✅ autorise Web, Android, iOS, Desktop
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// ⚠️ OBLIGATOIRE POUR PREFLIGHT
+app.options("*", cors());
 
 /* =========================
    📦 BODY PARSERS
@@ -57,7 +46,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* =========================
-   🖼️ FICHIERS STATIQUES (IMAGES)
+   🖼️ STATIC FILES
 ========================= */
 app.use(
   "/uploads",
@@ -70,7 +59,7 @@ app.use(
 );
 
 /* =========================
-   🔐 ROUTES API
+   🔐 ROUTES
 ========================= */
 app.use("/api/auth", authRoutes);
 app.use("/api", adminRoutes);
