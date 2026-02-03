@@ -1,44 +1,12 @@
-import mongoose from 'mongoose';
+import express from 'express';
+import { login, register } from '../controllers/auth.controller.js';
 
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-  },
+const router = express.Router();
 
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+// Login existant
+router.post('/login', login);
 
-  password: {
-    type: String,
-  },
+// 🔹 Nouvelle route pour enregistrer un utilisateur/admin
+router.post('/register', register);
 
-  role: {
-    type: String,
-    enum: ['admin', 'user'],
-    default: 'user',
-  },
-
-  // ✅ PROFESSION (choisie au premier lancement)
-  profession: {
-    type: String,
-    enum: ['doctor', 'pharmacist', 'student', 'other'],
-    default: null, // 👈 très important
-  },
-
-  // 🔒 Blocage utilisateur
-  isBlocked: {
-    type: Boolean,
-    default: false,
-  },
-
-  // 🕒 Dernière connexion
-  lastLoginAt: {
-    type: Date,
-    default: null,
-  },
-});
-
-export default mongoose.model('User', userSchema);
+export default router;
