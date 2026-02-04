@@ -9,9 +9,9 @@ export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
-    // ======================
-    // 🔐 ADMIN
-    // ======================
+    /* ======================
+       🔐 ADMIN
+    ====================== */
     if (role === 'admin' && password === '@dmin2025') {
       let user = await User.findOne({ email });
 
@@ -21,6 +21,7 @@ export const login = async (req, res) => {
           email,
           role: 'admin',
           password: await bcrypt.hash(password, 10),
+          profession: null, // 👈 admin n’a pas de profession
         });
       }
 
@@ -32,22 +33,27 @@ export const login = async (req, res) => {
         {
           id: user._id,
           role: 'admin',
-          email,
+          email: user.email,
         },
         process.env.JWT_SECRET,
         { expiresIn: '1d' }
       );
 
+      // ✅ RÉPONSE STANDARDISÉE (IMPORTANT POUR FLUTTER)
       return res.json({
         token,
-        role: 'admin',
-        email,
+        user: {
+          id: user._id,
+          email: user.email,
+          role: 'admin',
+          profession: null,
+        },
       });
     }
 
-    // ======================
-    // 🔐 USER
-    // ======================
+    /* ======================
+       🔐 USER
+    ====================== */
     if (role === 'user' && password === 'user2025') {
       let user = await User.findOne({ email });
 
@@ -57,10 +63,11 @@ export const login = async (req, res) => {
           email,
           role: 'user',
           password: await bcrypt.hash(password, 10),
+          profession: null, // 👈 1ère connexion
         });
       }
 
-      // 🔒 NOUVELLE SÉCURITÉ — COMPTE BLOQUÉ
+      // 🔒 COMPTE BLOQUÉ
       if (user.isBlocked) {
         return res.status(403).json({
           message: 'Compte bloqué par l’administrateur',
@@ -75,16 +82,21 @@ export const login = async (req, res) => {
         {
           id: user._id,
           role: 'user',
-          email,
+          email: user.email,
         },
         process.env.JWT_SECRET,
         { expiresIn: '1d' }
       );
 
+      // ✅ RÉPONSE STANDARDISÉE
       return res.json({
         token,
-        role: 'user',
-        email,
+        user: {
+          id: user._id,
+          email: user.email,
+          role: 'user',
+          profession: user.profession ?? null,
+        },
       });
     }
 
@@ -135,15 +147,20 @@ export const register = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      lastLoginAt: new Date(), // ✅ premier login
+      profession: role === 'admin' ? null : null,
+      lastLoginAt: new Date(),
     });
 
     await user.save();
 
     res.status(201).json({
       message: 'Utilisateur créé avec succès',
-      role,
-      email,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        profession: user.profession,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
