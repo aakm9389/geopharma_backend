@@ -3,6 +3,9 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import notificationRoutes from './routes/notification.routes.js';
+import adminNotificationRoutes from './routes/admin.notification.routes.js';
+
 /* Routes */
 import authRoutes from "./routes/auth.routes.js";
 import pharmacyRoutes from "./routes/pharmacy.routes.js";
@@ -74,5 +77,9 @@ app.use("/api/homecare", homecareRoutes);
 app.use("/api/imaging", imagingRoutes);
 app.use("/api/specialties", specialtyRoutes);
 app.use("/api/dentals", dentalRoutes);
+
+app.use('/notifications', notificationRoutes);
+app.use('/admin/notifications', adminNotificationRoutes);
+
 
 export default app;
